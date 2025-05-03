@@ -2,8 +2,8 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Toggle } from '@/components/ui/toggle';
 import { PiMicrophone, PiMicrophoneSlash, PiVideoCamera, PiVideoCameraSlash } from 'react-icons/pi';
+import { MdScreenShare, MdStopScreenShare } from 'react-icons/md';
 import { toast } from 'sonner';
 import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 
@@ -14,7 +14,7 @@ interface VideoViewProps {
 const VideoView: React.FC<VideoViewProps> = ({ onTranscriptionChange }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [videoOn, setVideoOn] = useState<boolean>(true);
+  const [streamType, setStreamType] = useState<'camera' | 'screen' | null>(null);
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [transcription, setTranscription] = useState<string>('');
   const [responseTime, setResponseTime] = useState<number>(0);
@@ -23,13 +23,13 @@ const VideoView: React.FC<VideoViewProps> = ({ onTranscriptionChange }) => {
   const audioStreamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
-    let activeStream: MediaStream;
+    let localStream: MediaStream | null = null;
 
     const initCamera = async () => {
       try {
-        activeStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true });
         if (videoRef.current) {
-          videoRef.current.srcObject = activeStream;
+          videoRef.current.srcObject = localStream;
         }
       } catch (err) {
         console.error('Error accessing camera:', err);
@@ -37,19 +37,33 @@ const VideoView: React.FC<VideoViewProps> = ({ onTranscriptionChange }) => {
       }
     };
 
-    if (videoOn) {
+    const initScreenShare = async () => {
+      try {
+        localStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        if (videoRef.current) {
+          videoRef.current.srcObject = localStream;
+        }
+      } catch (err) {
+        console.error('Error accessing screen share:', err);
+        setError('Unable to share screen. Please allow screen share permissions.');
+      }
+    };
+
+    if (streamType === 'camera') {
       initCamera();
+    } else if (streamType === 'screen') {
+      initScreenShare();
     }
 
     return () => {
-      if (activeStream) {
-        activeStream.getTracks().forEach((track) => track.stop());
+      if (localStream) {
+        localStream.getTracks().forEach((track) => track.stop());
         if (videoRef.current) {
           videoRef.current.srcObject = null;
         }
       }
     };
-  }, [videoOn]);
+  }, [streamType]);
 
   // Update parent component when transcription changes
   useEffect(() => {
@@ -115,13 +129,26 @@ const VideoView: React.FC<VideoViewProps> = ({ onTranscriptionChange }) => {
         <Button variant="default" size="icon" className="bg-white/70 hover:bg-white/90 hover:text-gray-800 active:text-black" onMouseDown={handleRecordStart} onMouseUp={handleRecordStop}>
           {isRecording ? <PiMicrophone size={24} /> : <PiMicrophoneSlash size={24} />}
         </Button>
-        <Toggle pressed={videoOn} onPressedChange={setVideoOn} variant="default" className="bg-white/70 hover:bg-white/90">
-          {videoOn ? (
-            <PiVideoCamera size={24} />
-          ) : (
-            <PiVideoCameraSlash size={24} />
-          )}
-        </Toggle>
+        {/* Camera button */}
+        <Button
+          variant="default"
+          size="icon"
+          disabled={streamType !== null && streamType !== 'camera'}
+          className={`${streamType === 'camera' ? 'bg-red-500 text-white' : 'bg-white/70 hover:bg-white/90 hover:text-gray-800 active:text-black'}`}
+          onClick={() => setStreamType(streamType === 'camera' ? null : 'camera')}
+        >
+          {streamType === 'camera' ? <PiVideoCameraSlash size={24} /> : <PiVideoCamera size={24} />}
+        </Button>
+        {/* Screen share button */}
+        <Button
+          variant="default"
+          size="icon"
+          disabled={streamType !== null && streamType !== 'screen'}
+          className={`${streamType === 'screen' ? 'bg-red-500 text-white' : 'bg-white/70 hover:bg-white/90 hover:text-gray-800 active:text-black'}`}
+          onClick={() => setStreamType(streamType === 'screen' ? null : 'screen')}
+        >
+          {streamType === 'screen' ? <MdStopScreenShare size={24} /> : <MdScreenShare size={24} />}
+        </Button>
       </div>
       <SonnerToaster />
     </div>

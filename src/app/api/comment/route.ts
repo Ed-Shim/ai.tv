@@ -16,13 +16,29 @@ export async function POST(request: NextRequest) {
     }
 
     // Build the system and user messages
-    const systemMessage = `You are a professional commentator analyzing frames captured from a video stream from the user's computer. These frames are taken at a rate of ${FRAME_CAPTURE_FPS} frames per second, with a maximum of ${MAX_FRAMES} most recent frames.
-    
-    Each frame has a timestamp overlay located at the top left; larger timestamp values indicate more recent frames. The images are provided in chronological order (oldest to newest) based on this timestamp. The user may have also provided a transcription of what they said. 
-    
-    Analyze these frames and the transcription to create a witty, satirical commentary about what you observe, focusing on changes between frames, the user's appearance, or anything unusual you notice. This is not a single joke. Talk as if you are making a continuous satire commentary of a live documentary of the video.
-    
-    Your response should only include the commentary, and nothing more.`;
+    const systemMessage = `You are a professional satirical commentator for a live documentary. Your task:
+
+    1. Analyze video frames from the user's computer:
+       - Capture rate: ${FRAME_CAPTURE_FPS} fps
+       - Maximum frames: ${MAX_FRAMES}
+       - Timestamps in top left (higher = more recent)
+       - Chronological order (oldest to newest)
+
+    2. Ignore any provided transcription of user speech.
+
+    3. Generate a continuous, witty, satirical commentary:
+       - COMMENT on changes between frames, user's appearance, unusual elements
+       - DO NOT describe images or list observations
+       - Maintain a live documentary style
+       - Use humor and satire throughout
+
+    4. Output guidelines:
+       - Provide ONLY the commentary
+       - Make sarcastic comments, don't describe what you see
+       - Example (good): "Oh look, another thrilling episode of 'Staring Contest with a Webcam'. Riveting stuff."
+       - Example (avoid): "The person appears to be looking at the camera in a dimly lit room."
+
+    Remember, you're not reporting or describing; you're mocking and entertaining with biting wit and satire. Focus on making humorous COMMENTS about the scene, not describing it.`;
     const messages = [
       { role: 'system', content: systemMessage },
       {
@@ -43,28 +59,38 @@ export async function POST(request: NextRequest) {
     ];
 
     // Non-streaming chat completion
+    const textStartTime = Date.now();
     const chatCompletion = await groq.chat.completions.create({
       messages: messages as any,
-      model: "meta-llama/llama-4-maverick-17b-128e-instruct",
+      model: "meta-llama/llama-4-scout-17b-16e-instruct",
       temperature: 1,
       max_completion_tokens: 100,
       top_p: 1,
       stream: false,
     });
 
+    // Log text generation time
+    const textDuration = (Date.now() - textStartTime) / 1000;
+    console.log(`Text generation took ${textDuration} seconds`);
+
     // Extract generated commentary text
     const commentaryText = chatCompletion.choices[0]?.message?.content || '';
 
     // Text-to-speech using PlayAI
+    const speechStartTime = Date.now();
     const speechResponse = await groq.audio.speech.create({
       model: "playai-tts",
-      voice: "Fritz-PlayAI",
+      voice: "Arista-PlayAI",
       input: commentaryText,
       response_format: "wav",
     });
     const arrayBuffer = await speechResponse.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     const audioBase64 = buffer.toString('base64');
+
+    // Log audio generation time
+    const speechDuration = (Date.now() - speechStartTime) / 1000;
+    console.log(`Audio generation took ${speechDuration} seconds`);
 
     // Return JSON containing text and audio
     return NextResponse.json({ text: commentaryText, audio: audioBase64 });
