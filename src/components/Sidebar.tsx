@@ -172,7 +172,16 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col p-3">
+      <div className="mb-2">
+        <Button
+          onClick={handleGenerate}
+          disabled={isGenerating || frames.length === 0}
+          className="w-full"
+        >
+          {isGenerating ? 'Generating...' : 'Generate Response'}
+        </Button>
+      </div>
       <Tabs defaultValue="input" value={activeTab} onValueChange={setActiveTab} className="w-full h-full">
         <TabsList className="w-full grid grid-cols-2">
           <TabsTrigger value="input">Input</TabsTrigger>
@@ -180,22 +189,11 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
         </TabsList>
         
         <TabsContent value="input" className="h-full flex flex-col">
-          <div className="mb-2">
-            <Button 
-              onClick={handleGenerate} 
-              disabled={isGenerating || frames.length === 0} 
-              className="w-full mb-2"
-            >
-              {isGenerating ? 'Generating...' : 'Generate Response'}
-            </Button>
-            
-            {transcription && (
-              <div className="p-2 mb-4 bg-gray-50 rounded border">
-                <p className="text-sm">{transcription}</p>
-              </div>
-            )}
-          </div>
-          
+          {transcription && (
+            <div className="p-2 mb-4 bg-gray-50 rounded border">
+              <p className="text-sm">{transcription}</p>
+            </div>
+          )}
           <ScrollArea className="flex-grow">
             <div className="space-y-4 p-1">
               {frames.map((frame, idx) => (
