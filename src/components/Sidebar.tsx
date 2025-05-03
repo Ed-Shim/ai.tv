@@ -29,6 +29,7 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
   const [frames, setFrames] = useState<Frame[]>([]);
   const [response, setResponse] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [isCommentaryGenerating, setIsCommentaryGenerating] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('input');
   const timeRef = useRef<number>(0);
 
@@ -174,6 +175,42 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
     }
   };
 
+  const handleGenerateCommentary = async () => {
+    if (frames.length === 0) return;
+    try {
+      setIsCommentaryGenerating(true);
+      const startTime = new Date();
+      const res = await fetch('/api/comment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ images: frames.map(f => f.src), transcription }),
+      });
+      if (!res.ok) throw new Error('Failed to generate commentary');
+      const { text: commentaryText, audio: audioBase64 } = await res.json();
+      setResponse(commentaryText);
+      setActiveTab('response');
+      const byteChars = atob(audioBase64);
+      const byteNumbers = new Uint8Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) {
+        byteNumbers[i] = byteChars.charCodeAt(i);
+      }
+      const blob = new Blob([byteNumbers], { type: 'audio/wav' });
+      const audioUrl = URL.createObjectURL(blob);
+      const audio = new Audio(audioUrl);
+      audio.onloadedmetadata = () => {
+        console.log(`${startTime.toLocaleTimeString()} Audio length: ${audio.duration.toFixed(2)}s`);
+      };
+      audio.onended = () => {
+        URL.revokeObjectURL(audioUrl);
+        setIsCommentaryGenerating(false);
+      };
+      await audio.play();
+    } catch (error) {
+      console.error('Error generating commentary:', error);
+      setIsCommentaryGenerating(false);
+    }
+  };
+
   return (
     <div className="h-full flex flex-col p-3">
       <div className="mb-2">
@@ -183,6 +220,15 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
           className="w-full"
         >
           {isGenerating ? 'Generating...' : 'Generate Response'}
+        </Button>
+      </div>
+      <div className="mb-2">
+        <Button
+          onClick={handleGenerateCommentary}
+          disabled={isCommentaryGenerating || frames.length === 0}
+          className="w-full"
+        >
+          {isCommentaryGenerating ? 'Generating Commentary...' : 'Generate Commentary'}
         </Button>
       </div>
       <Tabs defaultValue="input" value={activeTab} onValueChange={setActiveTab} className="w-full h-full">
