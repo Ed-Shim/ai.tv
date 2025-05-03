@@ -7,7 +7,11 @@ import { PiMicrophone, PiMicrophoneSlash, PiVideoCamera, PiVideoCameraSlash } fr
 import { toast } from 'sonner';
 import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 
-const VideoView: React.FC = () => {
+interface VideoViewProps {
+  onTranscriptionChange?: (transcription: string) => void;
+}
+
+const VideoView: React.FC<VideoViewProps> = ({ onTranscriptionChange }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [videoOn, setVideoOn] = useState<boolean>(true);
@@ -46,6 +50,13 @@ const VideoView: React.FC = () => {
       }
     };
   }, [videoOn]);
+
+  // Update parent component when transcription changes
+  useEffect(() => {
+    if (onTranscriptionChange) {
+      onTranscriptionChange(transcription);
+    }
+  }, [transcription, onTranscriptionChange]);
 
   const handleRecordStart = async () => {
     try {
