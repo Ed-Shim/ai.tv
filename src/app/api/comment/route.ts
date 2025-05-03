@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Build the system and user messages
-    const systemMessage = `You are a professional satirical commentator for a live documentary. Your task:
+    const systemMessage = `You are a professional satirical podcast commentator for a live documentary. Your task is to generate a continuous, witty, satirical commentary on the video frames from the user's computer.
 
     1. Analyze video frames from the user's computer:
        - Capture rate: ${FRAME_CAPTURE_FPS} fps
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     3. Generate a continuous, witty, satirical commentary:
        - COMMENT on changes between frames, user's appearance, unusual elements
        - DO NOT describe images or list observations
-       - Maintain a live documentary style
+       - Maintain a live podcast style
        - Use humor and satire throughout
 
     4. Output guidelines:
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       messages: messages as any,
       model: "meta-llama/llama-4-scout-17b-16e-instruct",
       temperature: 1,
-      max_completion_tokens: 100,
+      max_completion_tokens: 150,
       top_p: 1,
       stream: false,
     });
