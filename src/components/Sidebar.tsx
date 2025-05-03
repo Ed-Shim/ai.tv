@@ -53,8 +53,9 @@ const Sidebar: React.FC = () => {
       
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       
-      // Overlay timestamp onto frame
-      const text = formatTime(currentTime);
+      // Overlay current timestamp in integer format onto frame
+      const currentTimestamp = Math.floor(Date.now());
+      const text = currentTimestamp.toString();
       const fontSize = Math.round(canvas.height * 0.05);
       ctx.font = `bold ${fontSize}px sans-serif`;
       const textWidth = ctx.measureText(text).width;
@@ -68,7 +69,7 @@ const Sidebar: React.FC = () => {
       const dataUrl = canvas.toDataURL('image/jpeg');
       
       setFrames(prevFrames => {
-        const newFrames = [{ src: dataUrl, timestamp: currentTime }, ...prevFrames];
+        const newFrames = [{ src: dataUrl, timestamp: Math.floor(Date.now()) }, ...prevFrames];
         return newFrames.slice(0, MAX_FRAMES);
       });
       
@@ -95,7 +96,7 @@ const Sidebar: React.FC = () => {
           <div key={idx} className="w-full h-auto">
             <img
               src={frame.src}
-              alt={`Frame at ${frame.timestamp}s`}
+              alt={`Frame at timestamp ${frame.timestamp}`}
               className="w-full object-cover"
             />
           </div>

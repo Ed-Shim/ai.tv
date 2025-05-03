@@ -4,12 +4,16 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
 import { PiMicrophone, PiMicrophoneSlash, PiVideoCamera, PiVideoCameraSlash } from 'react-icons/pi';
+import { toast } from 'sonner';
+import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 
 const VideoView: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [videoOn, setVideoOn] = useState<boolean>(true);
   const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [transcription, setTranscription] = useState<string>('');
+  const [responseTime, setResponseTime] = useState<number>(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const audioStreamRef = useRef<MediaStream | null>(null);
@@ -61,11 +65,27 @@ const VideoView: React.FC = () => {
 
   const handleRecordStop = () => {
     if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.onstop = () => {
-        console.log('recorded');
-        audioChunksRef.current = [];
-        if (audioStreamRef.current) {
-          audioStreamRef.current.getTracks().forEach((track) => track.stop());
+      mediaRecorderRef.current.onstop = async () => {
+        const startTime = Date.now();
+        const blob = new Blob(audioChunksRef.current, { type: audioChunksRef.current[0]?.type || 'audio/webm' });
+        const formData = new FormData();
+        formData.append('file', blob, 'recording.webm');
+
+        try {
+          const response = await fetch('/api/transcript', { method: 'POST', body: formData });
+          const text = await response.text();
+          const duration = Date.now() - startTime;
+          setTranscription(text);
+          setResponseTime(duration);
+          toast.success(`${text} (${duration}ms)`);
+        } catch (error) {
+          console.error('Transcription failed:', error);
+          toast.error('Transcription failed');
+        } finally {
+          audioChunksRef.current = [];
+          if (audioStreamRef.current) {
+            audioStreamRef.current.getTracks().forEach((track) => track.stop());
+          }
         }
       };
       mediaRecorderRef.current.stop();
@@ -92,6 +112,7 @@ const VideoView: React.FC = () => {
           )}
         </Toggle>
       </div>
+      <SonnerToaster />
     </div>
   );
 };
