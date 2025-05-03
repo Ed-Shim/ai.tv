@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
-import { MAX_FRAMES, FRAME_CAPTURE_FPS } from '../config/videoConfig';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useFrameCapture } from '../hooks/useFrameCapture';
+import { generateCommentary } from '../services/commentaryService';
 
 // Helper to format time as mm:ss:cc
 const pad2 = (n: number) => n.toString().padStart(2, '0');
@@ -25,80 +26,12 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
-  const [time, setTime] = useState<number>(0);
-  const [frames, setFrames] = useState<Frame[]>([]);
+  // Replace manual frame capture logic with a dedicated hook
+  const frames = useFrameCapture();
   const [response, setResponse] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [isCommentaryGenerating, setIsCommentaryGenerating] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('input');
-  const timeRef = useRef<number>(0);
-
-  useEffect(() => {
-    const intervalMs = 1000 / FRAME_CAPTURE_FPS;
-    let cancelled = false;
-    let timerId: number;
-    
-    const updateTime = () => {
-      if (cancelled) return;
-      
-      const newTime = timeRef.current + intervalMs / 1000;
-      timeRef.current = newTime;
-      setTime(newTime);
-      
-      // Always capture a frame every second
-      captureFrame(newTime);
-      
-      timerId = window.setTimeout(updateTime, intervalMs);
-    };
-    
-    const captureFrame = (currentTime: number) => {
-      const video = document.getElementById('camera-video') as HTMLVideoElement | null;
-      if (!video || video.readyState !== 4) return;
-      
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      
-      if (!ctx) return;
-      
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
-      // Overlay current timestamp in integer format onto frame
-      const currentTimestamp = Math.floor(Date.now());
-      const text = currentTimestamp.toString();
-      const fontSize = Math.round(canvas.height * 0.05);
-      ctx.font = `bold ${fontSize}px sans-serif`;
-      const textWidth = ctx.measureText(text).width;
-      const padding = fontSize * 0.2;
-      ctx.fillStyle = 'white';
-      ctx.fillRect(0, 0, textWidth + padding * 2, fontSize + padding * 2);
-      ctx.fillStyle = 'black';
-      ctx.fillText(text, padding, fontSize + padding);
-      
-      // Convert to JPEG and release canvas resources
-      const dataUrl = canvas.toDataURL('image/jpeg');
-      
-      setFrames(prevFrames => {
-        const newFrames = [{ src: dataUrl, timestamp: Math.floor(Date.now()) }, ...prevFrames];
-        return newFrames.slice(0, MAX_FRAMES);
-      });
-      
-      // Log memory usage
-      if (performance && (performance as any).memory) {
-        const { usedJSHeapSize, totalJSHeapSize } = (performance as any).memory;
-        console.log(`JS Heap: ${Math.round(usedJSHeapSize/1024/1024)}MB / ${Math.round(totalJSHeapSize/1024/1024)}MB`);
-      }
-    };
-    
-    // Start the timer immediately
-    timerId = window.setTimeout(updateTime, intervalMs);
-    
-    return () => {
-      cancelled = true;
-      clearTimeout(timerId);
-    };
-  }, []);
 
   const handleGenerate = async () => {
     if (frames.length === 0) return;
@@ -175,40 +108,23 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
     }
   };
 
-  const handleGenerateCommentary = async () => {
+  const handleGenerateCommentary = () => {
     if (frames.length === 0) return;
-    try {
-      setIsCommentaryGenerating(true);
-      const startTime = new Date();
-      const res = await fetch('/api/comment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ images: frames.map(f => f.src), transcription }),
-      });
-      if (!res.ok) throw new Error('Failed to generate commentary');
-      const { text: commentaryText, audio: audioBase64 } = await res.json();
-      setResponse(commentaryText);
-      setActiveTab('response');
-      const byteChars = atob(audioBase64);
-      const byteNumbers = new Uint8Array(byteChars.length);
-      for (let i = 0; i < byteChars.length; i++) {
-        byteNumbers[i] = byteChars.charCodeAt(i);
-      }
-      const blob = new Blob([byteNumbers], { type: 'audio/wav' });
-      const audioUrl = URL.createObjectURL(blob);
-      const audio = new Audio(audioUrl);
-      audio.onloadedmetadata = () => {
-        console.log(`${startTime.toLocaleTimeString()} Audio length: ${audio.duration.toFixed(2)}s`);
-      };
-      audio.onended = () => {
-        URL.revokeObjectURL(audioUrl);
+    generateCommentary(frames.map(f => f.src), transcription, {
+      onStart: () => {
+        setIsCommentaryGenerating(true);
+        setResponse('');
+        setActiveTab('response');
+      },
+      onText: text => setResponse(text),
+      onAudioStart: (size, format) => console.log(`Audio prepare: ${size} bytes, format ${format}`),
+      onError: error => {
+        console.error('Commentary error:', error);
+        setResponse('Error generating commentary. Please try again.');
         setIsCommentaryGenerating(false);
-      };
-      await audio.play();
-    } catch (error) {
-      console.error('Error generating commentary:', error);
-      setIsCommentaryGenerating(false);
-    }
+      },
+      onComplete: () => setIsCommentaryGenerating(false),
+    });
   };
 
   return (
