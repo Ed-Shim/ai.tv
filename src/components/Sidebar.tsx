@@ -111,6 +111,7 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
       const imagesData = frames.map(frame => frame.src);
       
       // Send the request to the API endpoint
+      const startTime = Date.now();
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: {
@@ -163,6 +164,8 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
           }
         }
       }
+      const endTime = Date.now();
+      console.log(`Analyze took ${endTime - startTime}ms`);
     } catch (error) {
       console.error('Error generating response:', error);
       setResponse('Error generating response. Please try again.');

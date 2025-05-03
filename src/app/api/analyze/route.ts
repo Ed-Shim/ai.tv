@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create a system message explaining the context
-    const systemMessage = `You are analyzing frames captured from a webcam. These frames are taken at a rate of ${FRAME_CAPTURE_FPS} frames per second, with a maximum of ${MAX_FRAMES} most recent frames. Each frame has a timestamp overlay located at the top right; larger timestamp values indicate more recent frames. The images are provided in chronological order (oldest to newest) based on this timestamp. The user may have also provided a transcription of what they said. Analyze these frames and the transcription to create a witty, satirical joke about what you observe, focusing on changes between frames, the user's appearance, or anything unusual you notice.`;
+    const systemMessage = `You are analyzing frames captured from a video stream from the user's computer. These frames are taken at a rate of ${FRAME_CAPTURE_FPS} frames per second, with a maximum of ${MAX_FRAMES} most recent frames. Each frame has a timestamp overlay located at the top right; larger timestamp values indicate more recent frames. The images are provided in chronological order (oldest to newest) based on this timestamp. The user may have also provided a transcription of what they said. Analyze these frames and the transcription to create a witty, satirical joke about what you observe, focusing on changes between frames, the user's appearance, or anything unusual you notice. Your response must only include the satire joke.`;
 
     // Prepare the messages for Groq API
     const messages = [
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
             messages: messages as any,
             model: "meta-llama/llama-4-maverick-17b-128e-instruct",
             temperature: 1,
-            max_completion_tokens: 1024,
+            max_completion_tokens: 150,
             top_p: 1,
             stream: true,
           });
