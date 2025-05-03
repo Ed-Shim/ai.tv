@@ -32,7 +32,8 @@ const VideoView: React.FC<VideoViewProps> = ({ onTranscriptionChange }) => {
           videoRef.current.srcObject = localStream;
         }
       } catch (err) {
-        console.error('Error accessing camera:', err);
+        // Camera access denied or error: handled gracefully
+        toast.error('Camera access denied');
         setError('Unable to access camera. Please allow camera permissions.');
       }
     };
@@ -44,8 +45,10 @@ const VideoView: React.FC<VideoViewProps> = ({ onTranscriptionChange }) => {
           videoRef.current.srcObject = localStream;
         }
       } catch (err) {
-        console.error('Error accessing screen share:', err);
-        setError('Unable to share screen. Please allow screen share permissions.');
+        // Screen share canceled or permission denied: handled gracefully
+        setStreamType(null);
+        setError(null);
+        toast.error('Screen share canceled');
       }
     };
 
