@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Groq from 'groq-sdk';
+import { groq } from '@/lib/external/groq';
 import { MAX_FRAMES, FRAME_CAPTURE_FPS } from '@/config/videoConfig';
-
-// Initialize Groq client
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
 
 export async function POST(request: NextRequest) {
   try {
