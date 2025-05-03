@@ -1,6 +1,16 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
+import { MAX_FRAMES, FRAME_CAPTURE_FPS } from '../config/videoConfig';
+
+// Helper to format time as mm:ss:cc
+const pad2 = (n: number) => n.toString().padStart(2, '0');
+const formatTime = (timeInSec: number): string => {
+  const minutes = Math.floor(timeInSec / 60);
+  const seconds = Math.floor(timeInSec % 60);
+  const decimals = Math.floor((timeInSec - Math.floor(timeInSec)) * 100);
+  return `${pad2(minutes)}:${pad2(seconds)}:${pad2(decimals)}`;
+};
 
 interface Frame {
   src: string;
@@ -11,23 +21,23 @@ const Sidebar: React.FC = () => {
   const [time, setTime] = useState<number>(0);
   const [frames, setFrames] = useState<Frame[]>([]);
   const timeRef = useRef<number>(0);
-  const maxFrames = 5;
 
   useEffect(() => {
+    const intervalMs = 1000 / FRAME_CAPTURE_FPS;
     let cancelled = false;
     let timerId: number;
     
     const updateTime = () => {
       if (cancelled) return;
       
-      const newTime = timeRef.current + 1;
+      const newTime = timeRef.current + intervalMs / 1000;
       timeRef.current = newTime;
       setTime(newTime);
       
       // Always capture a frame every second
       captureFrame(newTime);
       
-      timerId = window.setTimeout(updateTime, 1000);
+      timerId = window.setTimeout(updateTime, intervalMs);
     };
     
     const captureFrame = (currentTime: number) => {
@@ -44,7 +54,7 @@ const Sidebar: React.FC = () => {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       
       // Overlay timestamp onto frame
-      const text = `${currentTime}s`;
+      const text = formatTime(currentTime);
       const fontSize = Math.round(canvas.height * 0.05);
       ctx.font = `bold ${fontSize}px sans-serif`;
       const textWidth = ctx.measureText(text).width;
@@ -59,7 +69,7 @@ const Sidebar: React.FC = () => {
       
       setFrames(prevFrames => {
         const newFrames = [{ src: dataUrl, timestamp: currentTime }, ...prevFrames];
-        return newFrames.slice(0, maxFrames);
+        return newFrames.slice(0, MAX_FRAMES);
       });
       
       // Log memory usage
@@ -70,7 +80,7 @@ const Sidebar: React.FC = () => {
     };
     
     // Start the timer immediately
-    timerId = window.setTimeout(updateTime, 1000);
+    timerId = window.setTimeout(updateTime, intervalMs);
     
     return () => {
       cancelled = true;
@@ -80,9 +90,6 @@ const Sidebar: React.FC = () => {
 
   return (
     <div className="p-4 overflow-auto">
-      <div className="bg-white inline-block px-2 py-1 mb-4">
-        <span className="text-black font-bold">Time: {time}s</span>
-      </div>
       <div className="space-y-4">
         {frames.map((frame, idx) => (
           <div key={idx} className="w-full h-auto">
