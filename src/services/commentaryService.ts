@@ -1,12 +1,15 @@
 import { parseEventStream, SSEEvent } from '@/utils/parseEventStream';
-import { playAudioFromBase64Chunks } from '@/utils/audioPlayer';
+import { CommentaryMessage } from '@/types/commentary';
 
 export interface CommentaryCallbacks {
   onStart?: () => void;
   onText?: (text: string) => void;
   onAudioStart?: (totalSize: number, format: string) => void;
+  onAudioReady?: (base64Data: string, format: string) => void;
   onError?: (error: Error) => void;
   onComplete?: () => void;
+  isMainSpeaker?: boolean;
+  pastMessages?: CommentaryMessage[];
 }
 
 export async function generateCommentary(
@@ -16,10 +19,18 @@ export async function generateCommentary(
 ): Promise<void> {
   callbacks.onStart?.();
   try {
+    // Prepare request with new fields
+    const requestBody = {
+      images,
+      transcription,
+      isMainSpeaker: callbacks.isMainSpeaker !== undefined ? callbacks.isMainSpeaker : true,
+      pastMessages: callbacks.pastMessages || []
+    };
+
     const res = await fetch('/api/comment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ images, transcription }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!res.ok) throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
@@ -48,9 +59,10 @@ export async function generateCommentary(
           }
           break;
         case 'audio_complete':
-          playAudioFromBase64Chunks(audioChunks, audioFormat)
-            .then(() => callbacks.onComplete?.())
-            .catch((err: unknown) => callbacks.onError?.(err as Error));
+          // Instead of playing audio directly, pass the collected audio data back to the caller
+          const fullBase64 = audioChunks.join('');
+          callbacks.onAudioReady?.(fullBase64, audioFormat);
+          callbacks.onComplete?.();
           break;
         default:
           if (ev.error) {
