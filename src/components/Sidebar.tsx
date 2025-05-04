@@ -61,7 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           // Send only the latest frame
-          body: JSON.stringify({ images: [frames[0].src] }),
+          body: JSON.stringify({ images: frames.map(frame => frame.src) }),
         });
         const data = await res.json();
         console.log('Chat output:', data);
