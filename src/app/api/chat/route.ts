@@ -26,7 +26,7 @@ function sampleIndices(count: number, maxIndex: number): number[] {
 
 export async function POST(request: NextRequest) {
   try {
-    const { images, currentMemory = "", transcription = "" } = await request.json();
+    const { images, currentMemory = "", transcription = "", commentaries = [] } = await request.json();
     if (!images || !Array.isArray(images) || images.length === 0) {
       return NextResponse.json({ error: 'No images provided' }, { status: 400 });
     }
@@ -34,6 +34,11 @@ export async function POST(request: NextRequest) {
     const sampleCount = getRandomInt(MIN_SAMPLE, MAX_SAMPLE);
     const maxIndex = viewerPersonas.length - 1;
     const indices = sampleIndices(sampleCount, maxIndex);
+
+    // Format commentaries for context
+    const commentaryText = commentaries.length > 0 
+      ? commentaries.map((c: any) => `${c.isMainSpeaker ? 'Main commentator' : 'Co-commentator'}: "${c.content}"`).join('\n')
+      : '';
 
     // Generate persona chat responses with memory context
     const personaPromises = indices.map(async (idx) => {
@@ -47,12 +52,14 @@ export async function POST(request: NextRequest) {
             
             ${transcription ? `The streamer just said: "${transcription}"` : ""}
             
+            ${commentaryText && `\nLive commentary on the stream:\n${commentaryText}`}
+            
             As you watch frames from a live stream, respond ONLY with valid JSON matching this schema:
             {
             "thoughts": ["string"], // between ${MIN_THINKING} and ${MAX_THINKING} items
             "interest_level": "low" | "mid" | "high",
             
-            "chat": "string" (avoid asking questions too much. The chat message must look like a typical streaming platform chat message. If the streamer said something, you can reference or react to it)
+            "chat": "string" (avoid asking questions too much. The chat message must look like a typical streaming platform chat message. You can reference or react to the streamer and commentary)
             }
             
             Focus on what you find interesting given the personality assigned as your role. (i.e., what would your personality find interesting inside the image?) You must keep your chat response snippet short and chat message like as instructed above. `
@@ -95,6 +102,11 @@ export async function POST(request: NextRequest) {
 
     // Update memory based on new frames and existing memory
     const memoryPromise = (async () => {
+      // Format commentaries for memory context
+      const commentaryText = commentaries.length > 0 
+        ? commentaries.map((c: any) => `${c.isMainSpeaker ? 'Main commentator' : 'Co-commentator'}: "${c.content}"`).join('\n')
+        : '';
+        
       const memoryMessages = [
         {
           role: 'system',
@@ -108,6 +120,8 @@ export async function POST(request: NextRequest) {
           ${currentMemory || "No observations yet."}
 
           ${transcription ? `The person in the stream just said: "${transcription}"` : ""}
+          
+          ${commentaryText && `\nLive commentary on this segment:\n${commentaryText}`}
 
           Analyze the 5 new frames from the video stream and update the memory by:
           1. If there's a scene change, add a new paragraph describing the new scene
@@ -115,6 +129,7 @@ export async function POST(request: NextRequest) {
           3. Avoid repeating information if no scene change or significant event has occurred
           4. Be concise but descriptive, focusing on key details visible in the frames
           ${transcription ? "5. Include what the person said in the memory" : ""}
+          ${commentaryText && "6. Include relevant information from the commentary in the memory"}
 
           Your output will be the complete updated memory text, maintaining all past observations plus the new information.`
         },

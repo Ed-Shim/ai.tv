@@ -95,7 +95,8 @@ export function processChatResponse(
 export async function fetchChatResponse(
   frames: string[],
   currentMemory: string = '',
-  transcription: string = ''
+  transcription: string = '',
+  commentaries: { content: string; isMainSpeaker: boolean }[] = []
 ): Promise<{
   messages: ChatMessage[];
   statistics: ChatStatistics;
@@ -108,7 +109,8 @@ export async function fetchChatResponse(
       body: JSON.stringify({ 
         images: frames,
         currentMemory,
-        transcription 
+        transcription,
+        commentaries 
       }),
     });
 

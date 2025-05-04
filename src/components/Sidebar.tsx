@@ -116,10 +116,19 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
     
     (async () => {
       try {
+        // Get the last 2 commentaries if they exist
+        const recentCommentaries = commentary.messages.length > 0 
+          ? commentary.messages.slice(-2).map(m => ({ 
+              content: m.content, 
+              isMainSpeaker: m.isMainSpeaker 
+            }))
+          : [];
+        
         const { messages, statistics, memory: updatedMemory } = await fetchChatResponse(
           frames.map(frame => frame.src),
           memory, // Pass current memory to be updated
-          transcription // Pass transcription from user audio
+          transcription, // Pass transcription from user audio
+          recentCommentaries // Pass recent commentaries
         );
         
         // Update chat messages
@@ -149,7 +158,7 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
         console.error('Chat streaming error:', error);
       }
     })();
-  }, [frames, commentary.isContinuous, memory, transcription]);
+  }, [frames, commentary.isContinuous, memory, transcription, commentary.messages]);
 
   return (
     <div className="h-full flex flex-col p-3">
