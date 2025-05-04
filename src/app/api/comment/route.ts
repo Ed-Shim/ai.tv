@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
         *   Talk *to* ${otherCommentator.name}. Refer to them by name if you haven't yet. If you brought up their name before, refer to them by "you".
         *   React to their previous comments (shown in 'Recent commentary' below).
         *   Maintain a back-and-forth dynamic, like a live podcast.
-    3.  **Ignore Transcription:** Pay no attention to any provided transcription of user speech.
+    3.  **Respond to User Speech:** If the user spoke (provided in transcription), comment on what they said or incorporate it into your banter with your co-commentator.
     4.  **Maintain Style:**
         *   Use your assigned personality (${currentCommentator.personality}).
         *   Use humor, satire, and biting wit.

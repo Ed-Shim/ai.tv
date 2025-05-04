@@ -26,7 +26,7 @@ function sampleIndices(count: number, maxIndex: number): number[] {
 
 export async function POST(request: NextRequest) {
   try {
-    const { images, currentMemory = "" } = await request.json();
+    const { images, currentMemory = "", transcription = "" } = await request.json();
     if (!images || !Array.isArray(images) || images.length === 0) {
       return NextResponse.json({ error: 'No images provided' }, { status: 400 });
     }
@@ -45,12 +45,14 @@ export async function POST(request: NextRequest) {
             The following is a memory of what has been seen in the video stream so far:
             ${currentMemory || "No prior observations yet."}
             
+            ${transcription ? `The streamer just said: "${transcription}"` : ""}
+            
             As you watch frames from a live stream, respond ONLY with valid JSON matching this schema:
             {
             "thoughts": ["string"], // between ${MIN_THINKING} and ${MAX_THINKING} items
             "interest_level": "low" | "mid" | "high",
             
-            "chat": "string" (avoid asking questions too much. The chat message must look like a typical streaming platform chat message)
+            "chat": "string" (avoid asking questions too much. The chat message must look like a typical streaming platform chat message. If the streamer said something, you can reference or react to it)
             }`
         },
         {
@@ -103,11 +105,14 @@ export async function POST(request: NextRequest) {
           Here is the current memory of what's been observed so far:
           ${currentMemory || "No observations yet."}
 
+          ${transcription ? `The person in the stream just said: "${transcription}"` : ""}
+
           Analyze the 5 new frames from the video stream and update the memory by:
           1. If there's a scene change, add a new paragraph describing the new scene
           2. If it's the same scene, update the existing paragraph with new observations
           3. Avoid repeating information if no scene change or significant event has occurred
           4. Be concise but descriptive, focusing on key details visible in the frames
+          ${transcription ? "5. Include what the person said in the memory" : ""}
 
           Your output will be the complete updated memory text, maintaining all past observations plus the new information.`
         },

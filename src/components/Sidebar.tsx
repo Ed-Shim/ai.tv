@@ -117,7 +117,8 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
       try {
         const { messages, statistics, memory: updatedMemory } = await fetchChatResponse(
           frames.map(frame => frame.src),
-          memory // Pass current memory to be updated
+          memory, // Pass current memory to be updated
+          transcription // Pass transcription from user audio
         );
         
         // Update chat messages

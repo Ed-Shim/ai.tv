@@ -94,7 +94,8 @@ export function processChatResponse(
  */
 export async function fetchChatResponse(
   frames: string[],
-  currentMemory: string = ''
+  currentMemory: string = '',
+  transcription: string = ''
 ): Promise<{
   messages: ChatMessage[];
   statistics: ChatStatistics;
@@ -106,7 +107,8 @@ export async function fetchChatResponse(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         images: frames,
-        currentMemory 
+        currentMemory,
+        transcription 
       }),
     });
 
