@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
           const textStartTime = Date.now();
           const chatCompletion = await groq.chat.completions.create({
             messages: messages as any,
-            model: "meta-llama/llama-4-scout-17b-16e-instruct",
+            model: "meta-llama/llama-4-maverick-17b-128e-instruct",
             temperature: 1.2,
             max_completion_tokens: 100,
             top_p: 1,

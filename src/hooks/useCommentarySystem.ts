@@ -79,7 +79,7 @@ export function useCommentarySystem(frames: Frame[], options: CommentaryOptions)
         developmentMode,
         onStart: () => {
           setIsGenerating(true);
-          onTabChange?.('response');
+          onTabChange?.('commentary');
         },
         onText: text => {
           // Add new message to the history

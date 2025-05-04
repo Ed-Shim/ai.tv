@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useFrameCapture } from '@/hooks/useFrameCapture';
 import { useCommentarySystem } from '@/hooks/useCommentarySystem';
@@ -9,6 +9,7 @@ import MessageList from './commentary/MessageList';
 import FrameDisplay from './commentary/FrameDisplay';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
+import { SLIDING_INTERVAL_FRAME } from '@/config/videoConfig';
 
 interface SidebarProps {
   transcription?: string;
@@ -33,6 +34,42 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
     onTabChange: setActiveTab,
     developmentMode: isDevelopmentMode
   });
+
+  // Chat streaming logic: call /api/chat every SLIDING_INTERVAL_FRAME new frames
+  const slidingCountRef = useRef<number>(0);
+  const lastFrameTimestampRef = useRef<number | undefined>(undefined);
+
+  // Reset counters when streaming stops
+  useEffect(() => {
+    if (!commentary.isContinuous) {
+      slidingCountRef.current = 0;
+      lastFrameTimestampRef.current = undefined;
+    }
+  }, [commentary.isContinuous]);
+
+  // Trigger chat API call at sliding interval
+  useEffect(() => {
+    if (!commentary.isContinuous || frames.length === 0) return;
+    const latestTimestamp = frames[0].timestamp;
+    if (latestTimestamp === lastFrameTimestampRef.current) return;
+    lastFrameTimestampRef.current = latestTimestamp;
+    slidingCountRef.current++;
+    if (slidingCountRef.current % SLIDING_INTERVAL_FRAME !== 0) return;
+    (async () => {
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          // Send only the latest frame
+          body: JSON.stringify({ images: [frames[0].src] }),
+        });
+        const data = await res.json();
+        console.log('Chat output:', data);
+      } catch (error) {
+        console.error('Chat streaming error:', error);
+      }
+    })();
+  }, [frames, commentary.isContinuous]);
 
   return (
     <div className="h-full flex flex-col p-3">

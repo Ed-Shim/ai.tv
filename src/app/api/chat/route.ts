@@ -54,6 +54,10 @@ export async function POST(request: NextRequest) {
         {
           role: 'user',
           content: [
+            {
+              "type": "text",
+              "text": "Use these frames."
+            },
             // Pass images as structured array content
             ...images.map((image: string) => ({
               type: 'image_url',
