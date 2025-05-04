@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     const transcription = await groq.audio.transcriptions.create({
       file: fs.createReadStream(tempFilePath),
-      model: "whisper-large-v3-turbo",
+      model: "whisper-large-v3",
     //   prompt: "Specify context or spelling",
       response_format: "json",
       language: "en",
