@@ -69,7 +69,8 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
     transcription,
     // Remove automatic tab switching when commentary is generated
     onTabChange: undefined,
-    developmentMode: isDevelopmentMode
+    developmentMode: isDevelopmentMode,
+    memory
   });
 
   // Chat streaming logic: call /api/chat every SLIDING_INTERVAL_FRAME new frames
@@ -148,7 +149,7 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
         console.error('Chat streaming error:', error);
       }
     })();
-  }, [frames, commentary.isContinuous, memory]);
+  }, [frames, commentary.isContinuous, memory, transcription]);
 
   return (
     <div className="h-full flex flex-col p-3">

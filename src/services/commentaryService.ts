@@ -12,6 +12,7 @@ export interface CommentaryCallbacks {
   pastMessages?: CommentaryMessage[];
   tone?: number;
   developmentMode?: boolean;
+  memory?: string;
 }
 
 export async function generateCommentary(
@@ -29,6 +30,7 @@ export async function generateCommentary(
       pastMessages: callbacks.pastMessages || [],
       tone: callbacks.tone,
       developmentMode: callbacks.developmentMode,
+      memory: callbacks.memory || "",
     };
 
     const res = await fetch('/api/comment', {

@@ -7,7 +7,8 @@ import { groq } from '@/lib/external/groq';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { images, transcription, isMainSpeaker = true, pastMessages = [], tone = 50, developmentMode = false } = body;
+    const { images, transcription, isMainSpeaker = true, pastMessages = [], tone = 50, developmentMode = false, memory = "" } = body;
+    console.log(memory)
     
     if (!images || !Array.isArray(images) || images.length === 0) {
       return NextResponse.json({ error: 'No images provided' }, { status: 400 });
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
       .join('\n');
 
     // Build the system and user messages
-    const systemMessage = `You are ${currentCommentator.name}, ${currentCommentator.role}. You are co-commentating with ${otherCommentator.name} (${otherCommentator.role}). Your task is to generate continuous, witty, satirical commentary on the video frames from the user's computer, with focus on creating engaging conversation with your co-commentator. Natural conversation is more important than describing the video frames. The commentator will respond after reading your response. Your response should only include the commentary given your roleplay.
+    let systemMessage = `You are ${currentCommentator.name}, ${currentCommentator.role}. You are co-commentating with ${otherCommentator.name} (${otherCommentator.role}). Your task is to generate continuous, witty, satirical commentary on the video frames from the user's computer, with focus on creating engaging conversation with your co-commentator. Natural conversation is more important than describing the video frames. The commentator will respond after reading your response. Your response should only include the commentary given your roleplay.
 
     Your personality: ${currentCommentator.personality}
     Your co-commentator's personality: ${otherCommentator.personality}
@@ -49,6 +50,7 @@ export async function POST(request: NextRequest) {
         *   Talk *to* ${otherCommentator.name}. Refer to them by name if you haven't yet. If you brought up their name before, refer to them by "you".
         *   React to their previous comments (shown in 'Recent commentary' below).
         *   Maintain a back-and-forth dynamic, like a live podcast.
+        *   You MUST avoid commentary conversation that continuously only describes the video frames. Engage in energetic, natural conversation.
     3.  **Respond to User Speech:** If the user spoke (provided in transcription), comment on what they said or incorporate it into your banter with your co-commentator.
     4.  **Maintain Style:**
         *   Use your assigned personality (${currentCommentator.personality}).
@@ -66,6 +68,11 @@ export async function POST(request: NextRequest) {
     *   Example (avoid): "It looks like the person is sitting at a desk."
     *   Example (good): "Now our friend's attempt at invisible typing is Oscar-worthy. Maybe we should call Hollywood?"
     *   Example (avoid): "The user seems to be working on something. ${otherCommentator.name}, what's your opinion on this?"`;
+    
+    // Add memory context if available
+    if (memory && memory.length > 0) {
+      systemMessage += `\n\n**Memory of past scenes:**\n${memory}\n\nUse the above memory as context for themes/topics that have been observed before. You can reference past scenes when relevant.`;
+    }
 
     // Create content for the user message based on past messages
     let userMessage = transcription || "";

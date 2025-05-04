@@ -11,13 +11,14 @@ export interface CommentaryOptions {
   onTabChange?: (tab: string) => void;
   developmentMode?: boolean;
   initialTone?: number;
+  memory?: string;
 }
 
 /**
  * Custom hook to manage commentary generation and audio playback
  */
 export function useCommentarySystem(frames: Frame[], options: CommentaryOptions) {
-  const { transcription, initialIsMainSpeaking = true, onTabChange, developmentMode = false, initialTone = 50 } = options;
+  const { transcription, initialIsMainSpeaking = true, onTabChange, developmentMode = false, initialTone = 50, memory } = options;
   
   // State management
   const [messages, setMessages] = useState<CommentaryMessage[]>([]);
@@ -77,6 +78,7 @@ export function useCommentarySystem(frames: Frame[], options: CommentaryOptions)
         pastMessages: recentMessages,
         tone,
         developmentMode,
+        memory,
         onStart: () => {
           setIsGenerating(true);
           onTabChange?.('commentary');
@@ -162,7 +164,7 @@ export function useCommentarySystem(frames: Frame[], options: CommentaryOptions)
         },
       }
     );
-  }, [frames, isGenerating, messages, isMainSpeaking, transcription, onTabChange, isContinuous, tone, developmentMode]);
+  }, [frames, isGenerating, messages, isMainSpeaking, transcription, onTabChange, isContinuous, tone, developmentMode, memory]);
 
   /**
    * Generate commentary with main speaker

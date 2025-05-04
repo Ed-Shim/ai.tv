@@ -24,6 +24,7 @@ export interface CommentaryRequest {
   transcription: string; // User transcription
   isMainSpeaker: boolean; // Whether the main commentator should speak
   pastMessages: CommentaryMessage[]; // Previous 5 messages for context
+  memory?: string; // Optional memory of past scenes for context
 }
 
 // Response structure from the API (just for type safety)

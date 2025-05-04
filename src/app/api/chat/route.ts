@@ -53,7 +53,9 @@ export async function POST(request: NextRequest) {
             "interest_level": "low" | "mid" | "high",
             
             "chat": "string" (avoid asking questions too much. The chat message must look like a typical streaming platform chat message. If the streamer said something, you can reference or react to it)
-            }`
+            }
+            
+            Focus on what you find interesting given the personality assigned as your role. (i.e., what would your personality find interesting inside the image?) You must keep your chat response snippet short and chat message like as instructed above. `
         },
         {
           role: 'user',
@@ -100,7 +102,7 @@ export async function POST(request: NextRequest) {
 
           Each scene represents a continuous view showing the same objects, people, or activities. If the past scenes are describing the similar person or the view compared to the new frames you received, you must assume it's the same scene. If so, update the existing scene by adding any new observation or events. When there's a change in view or what's being shown on camera, you should start a new paragraph in the memory. 
 
-          Label each sceme as scene 1, scene 2,... where the new scene is with larger number. So scene 2 is more recent than scene 1. Do not change old scenes. Either update the latest scene or add a new scene to the string.
+          Label each sceme as scene 1, scene 2,... where the new scene is with larger number. So scene 2 is more recent than scene 1. Do not change old scenes. Either update the latest scene or add a new scene to the string. You MUST ignore the timestamp. That is not relevant to the scene tracking.
 
           Here is the current memory of what's been observed so far:
           ${currentMemory || "No observations yet."}
