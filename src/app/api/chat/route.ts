@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
     // Separate persona chat results and summary
     const personaResults = (allResults as any[])
       .slice(0, indices.length)
-      // .filter(res => res.is_sending_chat);
+      .filter(res => res.is_sending_chat);
     const summaryResult = allResults[allResults.length - 1];
 
     return NextResponse.json({ responses: personaResults, memory: summaryResult });
