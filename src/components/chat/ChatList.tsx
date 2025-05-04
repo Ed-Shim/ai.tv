@@ -3,14 +3,6 @@
 import React, { useState, useMemo } from 'react';
 import { ChatMessage } from '@/services/chatService';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card } from '@/components/ui/card';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
 
 interface ChatListProps {
   messages: ChatMessage[];
@@ -75,8 +67,7 @@ export default function ChatList({ messages }: ChatListProps) {
                         {formatTime(message.timestamp)}
                       </span>
                       <span 
-                        className="text-xs font-semibold" 
-                        style={{ color: message.color }}
+                        className={`text-xs font-semibold ${message.color}`}
                       >
                         {message.id}
                       </span>
