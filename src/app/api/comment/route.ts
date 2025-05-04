@@ -7,7 +7,7 @@ import { groq } from '@/lib/external/groq';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { images, transcription, isMainSpeaker = true, pastMessages = [], tone = 50, developmentMode = false, memory = "" } = body;
+    const { images, transcription, isMainSpeaker = true, pastMessages = [], tone = 50, memory = "" } = body;
     
     if (!images || !Array.isArray(images) || images.length === 0) {
       return NextResponse.json({ error: 'No images provided' }, { status: 400 });
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create content for the user message based on past messages
-    let userMessage = transcription || "";
+    let userMessage = "Transcription of the user's speech:" + transcription || "";
 
     // Add past messages context if available
     if (formattedPastMessages.length > 0) {

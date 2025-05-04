@@ -6,6 +6,7 @@ import { PiMicrophone, PiMicrophoneSlash, PiVideoCamera, PiVideoCameraSlash } fr
 import { MdScreenShare, MdStopScreenShare } from 'react-icons/md';
 import { toast } from 'sonner';
 import { Toaster as SonnerToaster } from '@/components/ui/sonner';
+import { TRANSCRIPTION_CLEAR_TIMEOUT } from '@/config/videoConfig';
 
 interface VideoViewProps {
   onTranscriptionChange?: (transcription: string) => void;
@@ -20,6 +21,7 @@ const VideoView: React.FC<VideoViewProps> = ({ onTranscriptionChange }) => {
   const [responseTime, setResponseTime] = useState<number>(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const transcriptionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const audioStreamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
@@ -65,6 +67,12 @@ const VideoView: React.FC<VideoViewProps> = ({ onTranscriptionChange }) => {
           videoRef.current.srcObject = null;
         }
       }
+      
+      // Clean up timeout on unmount
+      if (transcriptionTimeoutRef.current) {
+        clearTimeout(transcriptionTimeoutRef.current);
+        transcriptionTimeoutRef.current = null;
+      }
     };
   }, [streamType]);
 
@@ -72,6 +80,20 @@ const VideoView: React.FC<VideoViewProps> = ({ onTranscriptionChange }) => {
   useEffect(() => {
     if (onTranscriptionChange) {
       onTranscriptionChange(transcription);
+    }
+    
+    // Clear any existing timeout when transcription changes
+    if (transcriptionTimeoutRef.current) {
+      clearTimeout(transcriptionTimeoutRef.current);
+      transcriptionTimeoutRef.current = null;
+    }
+    
+    // Set a new timeout if there is transcription content
+    if (transcription !== '') {
+      transcriptionTimeoutRef.current = setTimeout(() => {
+        setTranscription('');
+        transcriptionTimeoutRef.current = null;
+      }, TRANSCRIPTION_CLEAR_TIMEOUT);
     }
   }, [transcription, onTranscriptionChange]);
 
