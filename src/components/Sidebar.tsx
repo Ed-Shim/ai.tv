@@ -14,7 +14,6 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { SLIDING_INTERVAL_FRAME } from '@/config/videoConfig';
 import { fetchChatResponse, ChatMessage, ChatStatistics } from '@/services/chatService';
-import { Card } from '@/components/ui/card';
 
 interface SidebarProps {
   transcription?: string;
@@ -167,12 +166,12 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
             <TabsTrigger className="text-xs px-3" value="settings">Settings</TabsTrigger>
             {isDevelopmentMode && <TabsTrigger className="text-xs px-3" value="stats">Stats</TabsTrigger>}
             {isDevelopmentMode && <TabsTrigger className="text-xs px-3" value="memory">Memory</TabsTrigger>}
-            <TabsTrigger className="text-xs px-3 relative" value="commentary">
+            {isDevelopmentMode && <TabsTrigger className="text-xs px-3 relative" value="commentary">
               Commentary
               {commentary.messages.length > lastCommentaryCount && activeTab !== 'commentary' && (
                 <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-blue-500" />
               )}
-            </TabsTrigger>
+            </TabsTrigger>}
             <TabsTrigger className="text-xs px-3 relative" value="chat">
               Chat
               {chatMessages.length > lastChatCount && activeTab !== 'chat' && (
