@@ -42,7 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
       <Tabs defaultValue="input" value={activeTab} onValueChange={setActiveTab} className="w-full h-[calc(100%-80px)]">
         <TabsList className="w-full grid grid-cols-2 flex-grow-0">
           <TabsTrigger value="input">Input</TabsTrigger>
-          <TabsTrigger value="response">Response</TabsTrigger>
+          <TabsTrigger value="commentary">Commentary</TabsTrigger>
         </TabsList>
         
         {/* Input tab - display frames and transcription */}
@@ -54,7 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
         </TabsContent>
         
         {/* Response tab - display commentary messages */}
-        <TabsContent value="response" className="h-full">
+        <TabsContent value="commentary" className="h-full">
           <MessageList messages={commentary.messages} />
         </TabsContent>
       </Tabs>
