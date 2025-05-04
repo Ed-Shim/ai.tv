@@ -32,6 +32,15 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
   // Development mode state
   const [isDevelopmentMode, setIsDevelopmentMode] = useState<boolean>(true);
   
+  // Function to handle development mode toggle
+  const handleDevelopmentModeChange = (newMode: boolean) => {
+    // If switching off dev mode and current tab is dev-only, switch to a safe tab
+    if (!newMode && (activeTab === 'input' || activeTab === 'stats' || activeTab === 'memory')) {
+      setActiveTab('commentary');
+    }
+    setIsDevelopmentMode(newMode);
+  };
+  
   // Chat system state
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [statistics, setStatistics] = useState<ChatStatistics>({
@@ -40,10 +49,21 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
   });
   const [memories, setMemories] = useState<string[]>([]);
   
+  // Custom tab change handler to ensure we don't switch to hidden tabs
+  const handleTabChange = (newTab: string) => {
+    // Only allow switching to dev-only tabs if dev mode is enabled
+    if ((newTab === 'input' || newTab === 'stats' || newTab === 'memory') && !isDevelopmentMode) {
+      // Default to commentary tab if trying to access a dev tab when dev mode is off
+      setActiveTab('commentary');
+    } else {
+      setActiveTab(newTab);
+    }
+  };
+
   // Use our custom hook for managing commentary system
   const commentary = useCommentarySystem(frames, {
     transcription,
-    onTabChange: setActiveTab,
+    onTabChange: handleTabChange,
     developmentMode: isDevelopmentMode
   });
 
@@ -114,8 +134,8 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
       />
       
       {/* Tabs for all content */}
-      <Tabs defaultValue="input" value={activeTab} onValueChange={setActiveTab} className="w-full h-[calc(100%-36px)]">
-        <div className="overflow-x-auto">
+      <Tabs defaultValue="input" value={activeTab} onValueChange={handleTabChange} className="w-full h-[calc(100%-36px)]">
+        <div className="overflow-x-auto h-9 min-h-[36px] mb-2">
           <TabsList className="flex w-max">
             {isDevelopmentMode && <TabsTrigger className="text-xs px-3" value="input">Input</TabsTrigger>}
             <TabsTrigger className="text-xs px-3" value="settings">Settings</TabsTrigger>
@@ -168,7 +188,7 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
           </div>
           <div className="flex flex-col items-start gap-y-2">
             <span className="text-xs select-none text-stone-500">Development Mode</span>
-            <Switch checked={isDevelopmentMode} onCheckedChange={setIsDevelopmentMode} />
+            <Switch checked={isDevelopmentMode} onCheckedChange={handleDevelopmentModeChange} />
           </div>
         </TabsContent>
       </Tabs>
