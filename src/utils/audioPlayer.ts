@@ -2,6 +2,8 @@
  * Plays audio from an array of base64 chunks.
  * Returns a promise that resolves when playback ends or rejects on error.
  */
+import { audioConfig } from '@/config/audioConfig';
+
 export function playAudioFromBase64Chunks(
   chunks: string[],
   format: string
@@ -17,6 +19,7 @@ export function playAudioFromBase64Chunks(
       const blob = new Blob([byteNumbers], { type: `audio/${format}` });
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
+      audio.playbackRate = audioConfig.playbackRate;
       audio.onended = () => {
         URL.revokeObjectURL(url);
         resolve();

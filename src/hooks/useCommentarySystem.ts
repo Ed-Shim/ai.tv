@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { generateCommentary } from '@/services/commentaryService';
 import { CommentaryMessage, AudioItem } from '@/types/commentary';
 import { Frame } from '@/hooks/useFrameCapture';
+import { audioConfig } from '@/config/audioConfig';
 
 export interface CommentaryOptions {
   transcription: string;
@@ -200,6 +201,7 @@ export function useCommentarySystem(frames: Frame[], options: CommentaryOptions)
       try {
         // Create and play audio
         const audio = new Audio(`data:audio/${audioItem.format};base64,${audioItem.base64Data}`);
+        audio.playbackRate = audioConfig.playbackRate;
         
         // Update message status to playing
         setMessages(prev => 
@@ -281,7 +283,7 @@ export function useCommentarySystem(frames: Frame[], options: CommentaryOptions)
     
     playNextAudio();
   }, [audioQueue, isContinuous, frames.length]);
-  
+
   /**
    * Initialize continuous mode
    */
