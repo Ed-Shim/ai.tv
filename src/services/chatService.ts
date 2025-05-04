@@ -5,6 +5,7 @@ export interface ChatMessage {
   content: string; // Chat message content
   color: string;   // Color for styling the message
   timestamp: number; // When the message was received
+  interestLevel?: 'high' | 'mid' | 'low'; // Interest level of the message
 }
 
 export interface ChatStatistics {
@@ -59,7 +60,8 @@ export function processChatResponse(
       id: response.account_id,
       content: response.chat,
       color: response.text_color,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      interestLevel: response.interest_level
     }));
 
   // Extract statistics
