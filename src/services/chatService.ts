@@ -93,7 +93,8 @@ export function processChatResponse(
  * Sends frames to the chat API and processes the response
  */
 export async function fetchChatResponse(
-  frames: string[]
+  frames: string[],
+  currentMemory: string = ''
 ): Promise<{
   messages: ChatMessage[];
   statistics: ChatStatistics;
@@ -103,7 +104,10 @@ export async function fetchChatResponse(
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ images: frames }),
+      body: JSON.stringify({ 
+        images: frames,
+        currentMemory 
+      }),
     });
 
     if (!res.ok) {
@@ -121,7 +125,7 @@ export async function fetchChatResponse(
         gender: { male: 0, female: 0, unknown: 0 },
         interestLevel: { high: 0, mid: 0, low: 0 }
       },
-      memory: ''
+      memory: currentMemory // Return the current memory if there's an error
     };
   }
 }

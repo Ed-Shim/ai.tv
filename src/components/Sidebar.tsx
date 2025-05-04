@@ -51,7 +51,7 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
     gender: { male: 0, female: 0, unknown: 0 },
     interestLevel: { high: 0, mid: 0, low: 0 }
   });
-  const [memories, setMemories] = useState<string[]>([]);
+  const [memory, setMemory] = useState<string>('');
   
   // Custom tab change handler to ensure we don't switch to hidden tabs
   const handleTabChange = (newTab: string) => {
@@ -115,8 +115,9 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
     
     (async () => {
       try {
-        const { messages, statistics, memory } = await fetchChatResponse(
-          frames.map(frame => frame.src)
+        const { messages, statistics, memory: updatedMemory } = await fetchChatResponse(
+          frames.map(frame => frame.src),
+          memory // Pass current memory to be updated
         );
         
         // Update chat messages
@@ -138,15 +139,15 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
           }
         }));
         
-        // Update memories
-        if (memory) {
-          setMemories(prevMemories => [...prevMemories, memory]);
+        // Update memory with the continuous text
+        if (updatedMemory) {
+          setMemory(updatedMemory);
         }
       } catch (error) {
         console.error('Chat streaming error:', error);
       }
     })();
-  }, [frames, commentary.isContinuous]);
+  }, [frames, commentary.isContinuous, memory]);
 
   return (
     <div className="h-full flex flex-col p-3">
@@ -206,9 +207,9 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
           <StatsView statistics={statistics} />
         </TabsContent>
         
-        {/* Memory tab - display memories */}
+        {/* Memory tab - display continuous memory */}
         <TabsContent value="memory" className="h-full">
-          <MemoryList memories={memories} />
+          <MemoryList memory={memory} />
         </TabsContent>
         
         {/* Settings tab - display settings */}

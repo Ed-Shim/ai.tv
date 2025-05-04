@@ -81,7 +81,7 @@ export default function ChatList({ messages }: ChatListProps) {
                         {message.id}
                       </span>
                     </div>
-                    <span className="text-sm">{message.content}</span>
+                    <span className="text-sm text-black">{message.content}</span>
                   </div>
                 </div>
               ))
