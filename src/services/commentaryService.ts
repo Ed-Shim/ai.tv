@@ -10,6 +10,8 @@ export interface CommentaryCallbacks {
   onComplete?: () => void;
   isMainSpeaker?: boolean;
   pastMessages?: CommentaryMessage[];
+  tone?: number;
+  developmentMode?: boolean;
 }
 
 export async function generateCommentary(
@@ -24,7 +26,9 @@ export async function generateCommentary(
       images,
       transcription,
       isMainSpeaker: callbacks.isMainSpeaker !== undefined ? callbacks.isMainSpeaker : true,
-      pastMessages: callbacks.pastMessages || []
+      pastMessages: callbacks.pastMessages || [],
+      tone: callbacks.tone,
+      developmentMode: callbacks.developmentMode,
     };
 
     const res = await fetch('/api/comment', {

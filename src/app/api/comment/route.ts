@@ -7,7 +7,7 @@ import { groq } from '@/lib/external/groq';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { images, transcription, isMainSpeaker = true, pastMessages = [] } = body;
+    const { images, transcription, isMainSpeaker = true, pastMessages = [], tone = 50, developmentMode = false } = body;
     
     if (!images || !Array.isArray(images) || images.length === 0) {
       return NextResponse.json({ error: 'No images provided' }, { status: 400 });

@@ -38,3 +38,13 @@ export interface CommentaryResponse {
   data?: string;
   error?: string;
 }
+
+export interface ViewerPersona {
+  account_id: string;
+  text_color: string;
+  demographics: {
+    age: number;
+    gender: "male" | "female" | "unknown";
+  };
+  personality: string;
+}

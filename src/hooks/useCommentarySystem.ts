@@ -9,13 +9,15 @@ export interface CommentaryOptions {
   transcription: string;
   initialIsMainSpeaking?: boolean;
   onTabChange?: (tab: string) => void;
+  developmentMode?: boolean;
+  initialTone?: number;
 }
 
 /**
  * Custom hook to manage commentary generation and audio playback
  */
 export function useCommentarySystem(frames: Frame[], options: CommentaryOptions) {
-  const { transcription, initialIsMainSpeaking = true, onTabChange } = options;
+  const { transcription, initialIsMainSpeaking = true, onTabChange, developmentMode = false, initialTone = 50 } = options;
   
   // State management
   const [messages, setMessages] = useState<CommentaryMessage[]>([]);
@@ -23,6 +25,8 @@ export function useCommentarySystem(frames: Frame[], options: CommentaryOptions)
   const [isMainSpeaking, setIsMainSpeaking] = useState<boolean>(initialIsMainSpeaking);
   const [isContinuous, setIsContinuous] = useState<boolean>(false);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  // Settings state
+  const [tone, setTone] = useState<number>(initialTone);
   
   // Refs
   const processingMessageRef = useRef<string | null>(null);
@@ -71,6 +75,8 @@ export function useCommentarySystem(frames: Frame[], options: CommentaryOptions)
       {
         isMainSpeaker: isMainSpeaking,
         pastMessages: recentMessages,
+        tone,
+        developmentMode,
         onStart: () => {
           setIsGenerating(true);
           onTabChange?.('response');
@@ -156,7 +162,7 @@ export function useCommentarySystem(frames: Frame[], options: CommentaryOptions)
         },
       }
     );
-  }, [frames, isGenerating, messages, isMainSpeaking, transcription, onTabChange, isContinuous]);
+  }, [frames, isGenerating, messages, isMainSpeaking, transcription, onTabChange, isContinuous, tone, developmentMode]);
 
   /**
    * Generate commentary with main speaker
@@ -354,10 +360,12 @@ export function useCommentarySystem(frames: Frame[], options: CommentaryOptions)
     isMainSpeaking,
     isContinuous,
     isGenerating,
+    tone,
     
     // Actions
     generateNextCommentary,
     generateMainCommentary,
     toggleContinuous,
+    setTone,
   };
 }
