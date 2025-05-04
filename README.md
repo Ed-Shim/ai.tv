@@ -1,8 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI.tv
+
+AI.tv is a Next.js application that provides real-time video analysis, commentary, and viewer chat simulation for streaming content.
+
+## Features
+
+- **Real-time Video Analysis**: Captures frames from videos at configurable FPS for processing
+- **Live Commentary System**: Dual commentators with configurable personalities providing analysis and reactions
+- **Viewer Chat Simulation**: Creates virtual viewer personas that respond to video content
+- **Memory System**: Maintains context of previously seen content for continuity
+- **Audio Transcription**: Processes uploaded audio files and returns text transcripts
+
+## Technology Stack
+
+### Frontend
+- Next.js 14 with App Router
+- TypeScript
+- Tailwind CSS with Shadcn UI components
+
+### Backend
+- Next.js API routes for chat, commentary, and transcription
+- Stream-based response handling for real-time interactivity
+
+### Model Integration
+- **Llama Models**: Utilizes Meta's Llama 4 models for text generation
+  - Llama 4 Scout for chat interactions
+  - Llama 4 Maverick for detailed commentary and memory systems
+- **Groq Integration**: High-performance inference API for delivering fast model responses
+  - Text generation with configurable parameters
+  - Text-to-speech using PlayAI voices for commentary
 
 ## Getting Started
 
-First, run the development server:
+First, install dependencies:
+
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+```
+
+Then, set up your environment variables:
+
+```
+LLAMA_API_KEY=your_llama_api_key (Require updating code in the api endpoints)
+GROQ_API_KEY=your_groq_api_key
+```
+
+Run the development server:
 
 ```bash
 npm run dev
@@ -10,27 +56,15 @@ npm run dev
 yarn dev
 # or
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Configuration
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The application includes several configuration files:
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `videoConfig.ts`: Frame rate and video processing settings
+- `commentatorConfig.ts`: Commentator personalities and behavior
+- `chatConfig.ts`: Chat message generation parameters
+- `audioConfig.ts`: Audio processing settings
