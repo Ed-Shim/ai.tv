@@ -5,5 +5,5 @@ export interface AudioConfig {
 
 /** Configuration for audio playback */
 export const audioConfig: AudioConfig = {
-  playbackRate: 1,
+  playbackRate: 1.1,
 };
