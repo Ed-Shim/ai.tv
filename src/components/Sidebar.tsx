@@ -7,9 +7,13 @@ import { useCommentarySystem } from '@/hooks/useCommentarySystem';
 import CommentaryControls from './commentary/CommentaryControls';
 import MessageList from './commentary/MessageList';
 import FrameDisplay from './commentary/FrameDisplay';
+import ChatList from './chat/ChatList';
+import StatsView from './chat/StatsView';
+import MemoryList from './chat/MemoryList';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { SLIDING_INTERVAL_FRAME } from '@/config/videoConfig';
+import { fetchChatResponse, ChatMessage, ChatStatistics } from '@/services/chatService';
 
 interface SidebarProps {
   transcription?: string;
@@ -27,6 +31,14 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
   
   // Development mode state
   const [isDevelopmentMode, setIsDevelopmentMode] = useState<boolean>(true);
+  
+  // Chat system state
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [statistics, setStatistics] = useState<ChatStatistics>({
+    gender: { male: 0, female: 0, unknown: 0 },
+    interestLevel: { high: 0, mid: 0, low: 0 }
+  });
+  const [memories, setMemories] = useState<string[]>([]);
   
   // Use our custom hook for managing commentary system
   const commentary = useCommentarySystem(frames, {
@@ -55,16 +67,36 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
     lastFrameTimestampRef.current = latestTimestamp;
     slidingCountRef.current++;
     if (slidingCountRef.current % SLIDING_INTERVAL_FRAME !== 0) return;
+    
     (async () => {
       try {
-        const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          // Send only the latest frame
-          body: JSON.stringify({ images: frames.map(frame => frame.src) }),
-        });
-        const data = await res.json();
-        console.log('Chat output:', data);
+        const { messages, statistics, memory } = await fetchChatResponse(
+          frames.map(frame => frame.src)
+        );
+        
+        // Update chat messages
+        if (messages.length > 0) {
+          setChatMessages(prevMessages => [...prevMessages, ...messages]);
+        }
+        
+        // Update statistics
+        setStatistics(prevStats => ({
+          gender: {
+            male: prevStats.gender.male + statistics.gender.male,
+            female: prevStats.gender.female + statistics.gender.female,
+            unknown: prevStats.gender.unknown + statistics.gender.unknown
+          },
+          interestLevel: {
+            high: prevStats.interestLevel.high + statistics.interestLevel.high,
+            mid: prevStats.interestLevel.mid + statistics.interestLevel.mid,
+            low: prevStats.interestLevel.low + statistics.interestLevel.low
+          }
+        }));
+        
+        // Update memories
+        if (memory) {
+          setMemories(prevMemories => [...prevMemories, memory]);
+        }
       } catch (error) {
         console.error('Chat streaming error:', error);
       }
@@ -81,13 +113,18 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
         onToggleContinuous={commentary.toggleContinuous}
       />
       
-      {/* Tabs for input and response */}
-      <Tabs defaultValue="input" value={activeTab} onValueChange={setActiveTab} className="w-full h-[calc(100%-80px)]">
-        <TabsList className="w-full grid grid-cols-3 flex-grow-0">
-          {isDevelopmentMode && <TabsTrigger className="text-xs" value="input">Input</TabsTrigger>}
-          <TabsTrigger className="text-xs" value="commentary">Commentary</TabsTrigger>
-          <TabsTrigger className="text-xs" value="settings">Settings</TabsTrigger>
-        </TabsList>
+      {/* Tabs for all content */}
+      <Tabs defaultValue="input" value={activeTab} onValueChange={setActiveTab} className="w-full h-[calc(100%-36px)]">
+        <div className="overflow-x-auto">
+          <TabsList className="flex w-max">
+            {isDevelopmentMode && <TabsTrigger className="text-xs px-3" value="input">Input</TabsTrigger>}
+            <TabsTrigger className="text-xs px-3" value="settings">Settings</TabsTrigger>
+            {isDevelopmentMode && <TabsTrigger className="text-xs px-3" value="stats">Stats</TabsTrigger>}
+            {isDevelopmentMode && <TabsTrigger className="text-xs px-3" value="memory">Memory</TabsTrigger>}
+            <TabsTrigger className="text-xs px-3" value="commentary">Commentary</TabsTrigger>
+            <TabsTrigger className="text-xs px-3" value="chat">Chat</TabsTrigger>
+          </TabsList>
+        </div>
         
         {/* Input tab - display frames and transcription */}
         {isDevelopmentMode && (
@@ -99,9 +136,24 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
           </TabsContent>
         )}
         
-        {/* Response tab - display commentary messages */}
+        {/* Commentary tab - display commentary messages */}
         <TabsContent value="commentary" className="h-full">
           <MessageList messages={commentary.messages} />
+        </TabsContent>
+        
+        {/* Chat tab - display chat messages */}
+        <TabsContent value="chat" className="h-full">
+          <ChatList messages={chatMessages} />
+        </TabsContent>
+        
+        {/* Stats tab - display statistics */}
+        <TabsContent value="stats" className="h-full">
+          <StatsView statistics={statistics} />
+        </TabsContent>
+        
+        {/* Memory tab - display memories */}
+        <TabsContent value="memory" className="h-full">
+          <MemoryList memories={memories} />
         </TabsContent>
         
         {/* Settings tab - display settings */}
