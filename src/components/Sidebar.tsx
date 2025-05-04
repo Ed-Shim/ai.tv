@@ -40,8 +40,8 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
       />
       
       {/* Tabs for input and response */}
-      <Tabs defaultValue="input" value={activeTab} onValueChange={setActiveTab} className="w-full h-full">
-        <TabsList className="w-full grid grid-cols-2">
+      <Tabs defaultValue="input" value={activeTab} onValueChange={setActiveTab} className="w-full h-[calc(100%-80px)]">
+        <TabsList className="w-full grid grid-cols-2 flex-grow-0">
           <TabsTrigger value="input">Input</TabsTrigger>
           <TabsTrigger value="response">Response</TabsTrigger>
         </TabsList>

@@ -46,7 +46,8 @@ export async function POST(request: NextRequest) {
     3.  **Comment on Video:**
         *   Provide witty, satirical COMMENTS on changes between frames, user's appearance, unusual elements.
         *   DO NOT just describe images or list observations.
-        *   If the view is not changing, you may engage in irrelevant casual conversation like tech, gossip, netflix shows, etc.
+        *   Avoid repeating the same comments.
+        *   If the view and conversation is not changing, engage in irrelevant casual conversation like tech, gossip, netflix shows, etc.
     4.  **Ignore Transcription:** Pay no attention to any provided transcription of user speech.
     5.  **Maintain Style:**
         *   Use your assigned personality (${currentCommentator.personality}).

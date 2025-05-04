@@ -3,6 +3,7 @@
 import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CommentaryMessage } from '@/types/commentary';
+import { commentators } from '@/config/commentatorConfig';
 import { PiPlayCircle } from 'react-icons/pi';
 
 interface MessageItemProps {
@@ -14,13 +15,13 @@ interface MessageItemProps {
  */
 const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
   const bgColor = message.isMainSpeaker ? 'bg-blue-100' : 'bg-green-100';
-  const speakerType = message.isMainSpeaker ? 'Main' : 'Assistant';
+  const speakerType = message.isMainSpeaker ? commentators.find(c => c.type === 'main')?.name : commentators.find(c => c.type === 'assist')?.name;
   
   return (
     <div className={`p-3 rounded-lg ${bgColor}`}>
       <div className="flex justify-between items-center mb-1">
         <span className="text-xs font-semibold">
-          {speakerType} Commentator
+          {speakerType}
         </span>
         <span className="text-xs text-gray-500">
           {message.audioStatus === 'playing' ? (
@@ -47,7 +48,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages }) => {
     <ScrollArea className="h-full">
       <div className="p-4 space-y-4">
         {messages.length > 0 ? (
-          messages.map((msg) => (
+          messages.slice().reverse().map((msg) => (
             <MessageItem key={msg.id} message={msg} />
           ))
         ) : (

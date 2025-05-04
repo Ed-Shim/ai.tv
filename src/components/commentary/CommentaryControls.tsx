@@ -23,7 +23,7 @@ const CommentaryControls: React.FC<CommentaryControlsProps> = ({
   onToggleContinuous
 }) => {
   return (
-    <div className="mb-2 flex flex-col gap-2">
+    <div className="mb-2 flex flex-col gap-2 h-[80px]">
       <Button
         onClick={onGenerate}
         disabled={isGenerating || !hasFrames}
