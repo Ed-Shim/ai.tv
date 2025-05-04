@@ -14,6 +14,7 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { SLIDING_INTERVAL_FRAME } from '@/config/videoConfig';
 import { fetchChatResponse, ChatMessage, ChatStatistics } from '@/services/chatService';
+import { Card } from '@/components/ui/card';
 
 interface SidebarProps {
   transcription?: string;
@@ -28,6 +29,10 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
   
   // Tab navigation state
   const [activeTab, setActiveTab] = useState<string>('input');
+  
+  // Track new message updates when user is on a different tab
+  const [lastCommentaryCount, setLastCommentaryCount] = useState<number>(0);
+  const [lastChatCount, setLastChatCount] = useState<number>(0);
   
   // Development mode state
   const [isDevelopmentMode, setIsDevelopmentMode] = useState<boolean>(true);
@@ -63,7 +68,8 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
   // Use our custom hook for managing commentary system
   const commentary = useCommentarySystem(frames, {
     transcription,
-    onTabChange: handleTabChange,
+    // Remove automatic tab switching when commentary is generated
+    onTabChange: undefined,
     developmentMode: isDevelopmentMode
   });
 
@@ -78,6 +84,26 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
       lastFrameTimestampRef.current = undefined;
     }
   }, [commentary.isContinuous]);
+  
+  // Track new commentary messages
+  useEffect(() => {
+    // If there are new messages and user isn't on the commentary tab
+    if (commentary.messages.length > lastCommentaryCount && activeTab !== 'commentary') {
+      // Visual indicator is handled in the JSX
+    }
+    // Update the last seen count when actively viewing the commentary tab
+    if (activeTab === 'commentary') {
+      setLastCommentaryCount(commentary.messages.length);
+    }
+  }, [commentary.messages.length, activeTab, lastCommentaryCount]);
+  
+  // Track new chat messages
+  useEffect(() => {
+    // Update the last seen count when actively viewing the chat tab
+    if (activeTab === 'chat') {
+      setLastChatCount(chatMessages.length);
+    }
+  }, [chatMessages.length, activeTab]);
 
   // Trigger chat API call at sliding interval
   useEffect(() => {
@@ -141,8 +167,18 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
             <TabsTrigger className="text-xs px-3" value="settings">Settings</TabsTrigger>
             {isDevelopmentMode && <TabsTrigger className="text-xs px-3" value="stats">Stats</TabsTrigger>}
             {isDevelopmentMode && <TabsTrigger className="text-xs px-3" value="memory">Memory</TabsTrigger>}
-            <TabsTrigger className="text-xs px-3" value="commentary">Commentary</TabsTrigger>
-            <TabsTrigger className="text-xs px-3" value="chat">Chat</TabsTrigger>
+            <TabsTrigger className="text-xs px-3 relative" value="commentary">
+              Commentary
+              {commentary.messages.length > lastCommentaryCount && activeTab !== 'commentary' && (
+                <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-blue-500" />
+              )}
+            </TabsTrigger>
+            <TabsTrigger className="text-xs px-3 relative" value="chat">
+              Chat
+              {chatMessages.length > lastChatCount && activeTab !== 'chat' && (
+                <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-blue-500" />
+              )}
+            </TabsTrigger>
           </TabsList>
         </div>
         
