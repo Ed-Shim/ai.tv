@@ -8,7 +8,6 @@ interface CommentaryControlsProps {
   isGenerating: boolean;
   isContinuous: boolean;
   hasFrames: boolean;
-  onGenerate: () => void;
   onToggleContinuous: (pressed: boolean) => void;
 }
 
@@ -19,25 +18,17 @@ const CommentaryControls: React.FC<CommentaryControlsProps> = ({
   isGenerating,
   isContinuous,
   hasFrames,
-  onGenerate,
   onToggleContinuous
 }) => {
   return (
-    <div className="mb-2 flex flex-col gap-2 h-[80px]">
-      <Button
-        onClick={onGenerate}
-        disabled={isGenerating || !hasFrames}
-        className="w-full"
-      >
-        {isGenerating ? 'Generating Commentary...' : 'Generate Commentary'}
-      </Button>
+    <div className="mb-2 flex flex-col gap-2 h-[36px]">
       <Toggle
         pressed={isContinuous}
         onPressedChange={onToggleContinuous}
-        className="w-full justify-center"
+        className="w-full justify-center bg-black text-white hover:bg-black/80 hover:text-white data-[state=on]:bg-rose-200 data-[state=on]:hover:bg-rose-300 data-[state=on]:border data-[state=on]:border-rose-400 cursor-pointer"
         aria-label="Toggle continuous commentary"
       >
-        {isContinuous ? 'Stop Commentaries' : 'Start Commentaries'}
+        {isContinuous ? 'Stop Streaming' : 'Start Streaming'}
       </Toggle>
     </div>
   );

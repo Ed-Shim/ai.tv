@@ -35,7 +35,6 @@ const Sidebar: React.FC<SidebarProps> = ({ transcription = '' }) => {
         isGenerating={commentary.isGenerating}
         isContinuous={commentary.isContinuous}
         hasFrames={frames.length > 0}
-        onGenerate={commentary.generateMainCommentary}
         onToggleContinuous={commentary.toggleContinuous}
       />
       

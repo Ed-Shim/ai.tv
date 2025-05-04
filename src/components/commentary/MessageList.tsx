@@ -14,11 +14,11 @@ interface MessageItemProps {
  * Individual message item in the commentary list
  */
 const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
-  const bgColor = message.isMainSpeaker ? 'bg-blue-100' : 'bg-green-100';
+  const bgColor = message.isMainSpeaker ? 'bg-white' : 'bg-orange-100';
   const speakerType = message.isMainSpeaker ? commentators.find(c => c.type === 'main')?.name : commentators.find(c => c.type === 'assist')?.name;
   
   return (
-    <div className={`p-3 rounded-lg ${bgColor}`}>
+    <div className={`p-3 rounded-md ${bgColor}`}>
       <div className="flex justify-between items-center mb-1">
         <span className="text-xs font-semibold">
           {speakerType}
